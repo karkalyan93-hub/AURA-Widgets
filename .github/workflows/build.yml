@@ -1,5 +1,4 @@
-
-name: Inspect AURA Project
+name: Check AURA Gradle Configuration
 
 on:
   workflow_dispatch:
@@ -9,26 +8,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Extract project
         run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
-          mkdir source
           unzip -q aura-widgets.zip -d source
 
-      - name: Inspect Android project structure
+      - name: Read Gradle configuration
         run: |
-          echo "===== PROJECT FILES ====="
-          find source -type f \( \
-            -name "settings.gradle" -o \
-            -name "settings.gradle.kts" -o \
-            -name "build.gradle" -o \
-            -name "build.gradle.kts" -o \
-            -name "gradlew" -o \
-            -name "AndroidManifest.xml" \
-          \) -print
-          echo "===== DIRECTORY STRUCTURE ====="
-          find source -maxdepth 4 -type d -print
+          echo "===== SETTINGS ====="
+          cat source/settings.gradle.kts
+          echo "===== ROOT BUILD ====="
+          cat source/build.gradle.kts
+          echo "===== APP BUILD ====="
+          cat source/app/build.gradle.kts
+          echo "===== WRAPPER FILES ====="
+          find source/gradle/wrapper -type f -maxdepth 2 -print
+          echo "===== WRAPPER PROPERTIES ====="
+          if [ -f source/gradle/wrapper/gradle-wrapper.properties ]; then
+            cat source/gradle/wrapper/gradle-wrapper.properties
+          fi
