@@ -1,26 +1,16 @@
 
-name: Build AURA Widgets APK
+name: Inspect AURA Project
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'aura-widgets.zip'
-      - '.github/workflows/build.yml'
 
 jobs:
-  build:
+  inspect:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
 
       - name: Extract project
         run: |
@@ -29,30 +19,16 @@ jobs:
           mkdir source
           unzip -q aura-widgets.zip -d source
 
-      - name: Find Android project
+      - name: Inspect Android project structure
         run: |
-          PROJECT_FILE=$(find source -type f \( -name settings.gradle -o -name settings.gradle.kts \) | head -n 1)
-          if [ -z "$PROJECT_FILE" ]; then
-            echo "Android Gradle project not found in ZIP"
-            exit 1
-          fi
-          PROJECT_DIR=$(dirname "$PROJECT_FILE")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: Build APK
-        run: |
-          cd "$PROJECT_DIR"
-          if [ -f gradlew ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            sudo apt-get install -y gradle
-            gradle assembleDebug
-          fi
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: AURA-Widgets-APK
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+          echo "===== PROJECT FILES ====="
+          find source -type f \( \
+            -name "settings.gradle" -o \
+            -name "settings.gradle.kts" -o \
+            -name "build.gradle" -o \
+            -name "build.gradle.kts" -o \
+            -name "gradlew" -o \
+            -name "AndroidManifest.xml" \
+          \) -print
+          echo "===== DIRECTORY STRUCTURE ====="
+          find source -maxdepth 4 -type d -print
