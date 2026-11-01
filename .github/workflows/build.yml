@@ -29,7 +29,6 @@ jobs:
 
       - name: Locate Android SDK Manager
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
           SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)
           if [ -z "$SDKMANAGER" ]; then
             echo "ERROR: sdkmanager not found"
@@ -43,7 +42,23 @@ jobs:
 
       - name: Install Android SDK components
         run: |
-          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          "$SDKMANAGER" \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
+
+      - name: Generate debug signing key
+        run: |
+          keytool -genkeypair -v \
+            -keystore source/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -noprompt
 
       - name: Build debug APK
         run: |
